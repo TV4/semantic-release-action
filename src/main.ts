@@ -1,19 +1,65 @@
-import * as core from '@actions/core'
-import {wait} from './wait'
+import {promises as fs} from 'fs';
+import * as core from '@actions/core';
+import {exec} from '@actions/exec';
 
-async function run(): Promise<void> {
-  try {
-    const ms: string = core.getInput('milliseconds')
-    core.debug(`Waiting ${ms} milliseconds ...`)
-
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
-
-    core.setOutput('time', new Date().toTimeString())
-  } catch (error) {
-    core.setFailed(error.message)
-  }
+async function isFile(p: string): Promise<boolean> {
+  return fs.stat(p).then(
+    (s) => s.isFile(),
+    () => false
+  );
 }
 
-run()
+const fixUrl = (url: string): string =>
+  `//${url.replace(/^\/*/, '').replace(/\/*$/, '')}/`;
+
+async function run(): Promise<void> {
+  const isMonorepo = core.getInput('monorepo').toString() === 'true';
+
+  const npmUrl = core.getInput('npmurl');
+  if (!npmUrl) {
+    core.setFailed("'npmurl' must be set");
+    return;
+  }
+
+  const npmToken = core.getInput('token');
+
+  if (!npmToken) {
+    core.setFailed("'token' input not set");
+    return;
+  }
+
+  const lernaConfig = JSON.parse((await fs.readFile('lerna.json')).toString());
+  const {npmClient = 'npm'} = lernaConfig;
+
+  const fixedNpmUrl = fixUrl(npmUrl);
+
+  await fs.writeFile(
+    '.npmrc',
+    `registry=https://registry.npmjs.org/\n@tv4:registry=https:${fixedNpmUrl}\n${fixedNpmUrl}:_authToken=${npmToken}`
+  );
+
+  /* ensure access to GPR */
+  await exec(`npm whoami --registry https:${fixedNpmUrl}`);
+
+  if (await isFile('package-lock.json')) {
+    await exec('npm ci');
+  } else {
+    await exec('npm install');
+  }
+
+  if (isMonorepo) {
+    if (npmClient !== 'yarn') {
+      await exec('lerna bootstrap');
+    }
+    await exec('lerna exec -- [ -f release.config.js ] && semantic-release');
+  } else {
+    await exec('[ -f release.config.js ] && semantic-release');
+  }
+
+  await exec('git push origin --tags');
+}
+
+run().catch((error) => {
+  console.error('Action failed', error);
+  core.setFailed(error.message);
+});

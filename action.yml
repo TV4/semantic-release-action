@@ -1,10 +1,19 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: "semantic-release-action"
+description: "Run semantic-release in single repo or monorepo"
+author: "Fredrik Westmark <fredrik.westmark@tv4.se>"
 inputs:
-  myInput:              # change this
-    description: 'input description here'
-    default: 'default value if applicable'
+    npmurl:
+        description: "Url to your NPM service of choice. Defaults to GPR"
+        required: false
+        default: "npm.pkg.github.com"
+    token:
+        description: "NPM publish token. Defaults to GITHUB_TOKEN"
+        required: false
+        default: "${GITHUB_TOKEN}"
+    monorepo:
+        description: "Flag to indicate if the repo is a Lerna-powered monorepo"
+        required: false
+        default: false
 runs:
-  using: 'node12'
-  main: 'dist/index.js'
+    using: "node12"
+    main: "lib/main.js"
