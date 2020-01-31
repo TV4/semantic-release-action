@@ -53,7 +53,7 @@ async function run(): Promise<void> {
     }
     await exec('lerna exec -- eval "[ -f release.config.js ] && ../../node_modules/.bin/semantic-release"');
   } else {
-    await exec('[ -f release.config.js ] && semantic-release');
+    await exec('eval "[ -f release.config.js ] && semantic-release"');
   }
 
   await exec('git push origin --tags');
