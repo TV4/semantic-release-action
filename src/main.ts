@@ -51,7 +51,7 @@ async function run(): Promise<void> {
     if (npmClient !== 'yarn') {
       await exec('lerna bootstrap');
     }
-    await exec('lerna exec -- [ -f release.config.js ] && semantic-release');
+    await exec('lerna exec -- [ -f release.config.js ] && ../../node_modules/.bin/semantic-release');
   } else {
     await exec('[ -f release.config.js ] && semantic-release');
   }
