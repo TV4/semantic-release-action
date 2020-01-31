@@ -49,7 +49,7 @@ async function run(): Promise<void> {
 
   if (isMonorepo) {
     if (npmClient !== 'yarn') {
-      await exec('lerna bootstrap');
+      await exec('./node_modules/.bin/lerna bootstrap');
     }
     await exec('./node_modules/.bin/lerna exec -- eval "[ -f release.config.js ] && ../../node_modules/.bin/semantic-release"');
   } else {
