@@ -28,9 +28,6 @@ async function run(): Promise<void> {
     return;
   }
 
-  const lernaConfig = JSON.parse((await fs.readFile('lerna.json')).toString());
-  const {npmClient = 'npm'} = lernaConfig;
-
   const fixedNpmUrl = fixUrl(npmUrl);
 
   await fs.writeFile(
@@ -48,6 +45,8 @@ async function run(): Promise<void> {
   }
 
   if (isMonorepo) {
+    const lernaConfig = JSON.parse((await fs.readFile('lerna.json')).toString());
+    const {npmClient = 'npm'} = lernaConfig;
     if (npmClient !== 'yarn') {
       await exec('./node_modules/.bin/lerna bootstrap');
     }
