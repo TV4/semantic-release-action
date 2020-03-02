@@ -1,3 +1,32 @@
+# Semantice Release Github Action
+
+## New release
+
+Make changes in master, commit them, then:
+
+```bash
+> git push
+> git checkout next
+> npm run build
+> npm prune --production
+> git add node_modules
+> git commit -am "prod dependencies"
+> git push origin :refs/tags/latest
+> git tag -fa latest -m "set latest version"
+```
+
+If you want to set a new version tag
+
+```bash
+> git tag -fa v999 -m "set version 999"
+```
+
+Then finally...
+```bash
+> git push origin next --tags
+```
+
+
 <p align="center">
   <a href="https://github.com/actions/typescript-action/actions"><img alt="typescript-action status" src="https://github.com/actions/typescript-action/workflows/build-test/badge.svg"></a>
 </p>
